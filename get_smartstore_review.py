@@ -42,16 +42,15 @@ def get_review(URL: str) :
     # 스마트스토어 페이지 이동
     driver.get(URL)
     htmlSource = driver.page_source
-    soup = BeautifulSoup(htmlSource, "lxml")
-    time.sleep(uniform(1.0, 2.0))
+    time.sleep(1.0)
 
     # 스크롤 내리기
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") 
-    time.sleep(uniform(1.5, 2.0))
+    time.sleep(1.3)
 
     try:
         driver.find_element_by_xpath("//*[@id='_productTabContainer']/div/div[3]/ul/li[2]").click()  # 리뷰 페이지로 이동
-        time.sleep(uniform(1.5, 2.0))
+        time.sleep(uniform(1.0, 1.5))
 
     except NoSuchElementException or AttributeError or Exception as e:
         print("※ 분석할 수 없는 페이지입니다. 다른 URL을 입력해주세요 ※\n")
@@ -66,8 +65,6 @@ def get_review(URL: str) :
             try:
                 driver.find_element_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a[%d]"%i).click()
                 time.sleep(uniform(1.0, 1.5))
-                soup = BeautifulSoup(htmlSource, "lxml")
-                time.sleep(uniform(1.0, 2.0))
                 count += 1
                 if i==12:
                     pass
