@@ -43,7 +43,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "리뷰 분석 프로그램"))
         self.ok.setText(_translate("Dialog", "확인"))
         self.info.setText(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-size:16pt;\">URL를 입력하세요!</span></p></body></html>"))
 
