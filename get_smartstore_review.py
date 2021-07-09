@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 from random import uniform
 from tqdm import tqdm
+import chromedriver_autoinstaller
 
 ############### 스마트스토어 리뷰 크롤러 ###############################
 
@@ -17,18 +18,22 @@ sheet.append(["옵션", "카운트"])  # 데이터 프레임 내 변수명 생�
 
 def get_review(URL: str) :    
     review = []
-
     if "smartstore" in URL: # 입력한 링크에 smartstore이 포함되어있는 경우
         pass
     else :
-        print("※ 스마트스토어 페이지가 아닙니다. 다른 URL을 입력해주세요 ※")
+        print("※ 스마트스토어 페이지가 아닙니다. 다른 URL을 입력해주세요 ※\n")
         return 2
 
-    # 크롬드라이버 옵션 설정
-    options = webdriver.ChromeOptions()
-    options.add_argument("window-size=1920x1080")
-    options.add_argument("disable-gpu")
-    driver = webdriver.Chrome("chromedriver", chrome_options=options)
+    check_chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0] # 크롬 버전 확인
+    
+    options = webdriver.ChromeOptions()  # 크롬드라이버 옵션 설정
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    
+    try:
+        driver = webdriver.Chrome(f'./{check_chrome_ver}/chromedriver.exe', chrome_options=options)
+    except Exception as e:
+        chromedriver_autoinstaller.install(True)
+        driver = webdriver.Chrome(f'./{check_chrome_ver}/chromedriver.exe', chrome_options=options)
 
     # 대기 설정
     wait = WebDriverWait(driver, 3)
@@ -49,7 +54,7 @@ def get_review(URL: str) :
         time.sleep(uniform(1.5, 2.0))
 
     except NoSuchElementException or AttributeError or Exception as e:
-        print("※ 분석할 수 없는 페이지입니다. 다른 URL을 입력해주세요 ※")
+        print("※ 분석할 수 없는 페이지입니다. 다른 URL을 입력해주세요 ※\n")
         return 2
 
     length=len(driver.find_elements_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a")) # 리뷰 버튼 전체 개수 구하기
@@ -63,15 +68,17 @@ def get_review(URL: str) :
                 time.sleep(uniform(1.0, 1.5))
                 soup = BeautifulSoup(htmlSource, "lxml")
                 time.sleep(uniform(1.0, 2.0))
+                count += 1
                 if i==12:
                     pass
+                    count -= 1
                 else :
                     Review_Keywords = driver.find_elements_by_class_name("_3jZQShkMWY") # 리뷰 크롤링                       
                     [review.append(word.text) for word in Review_Keywords] # 리뷰들을 리스트에 저장
             except ElementNotInteractableException or NoSuchElementException or AttributeError or Exception as e: 
                 is_next_page_exist = False #다음 페이지가 존재하는지 확인
                 break
-            count += 10
+            
     driver.quit() # 드라이버 종료
 
     #리뷰 카운트 및 정렬
