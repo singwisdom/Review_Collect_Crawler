@@ -1,3 +1,4 @@
+from save_exel import save_to_excel_file
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from get_smartstore_review import get_review
@@ -29,8 +30,9 @@ class Ui_Dialog(object):
     def btnClick(self):
         url = self.edit.toPlainText() # 에디트 박스에서 URL를 받아옴
         print("\n>>>>>>> 리뷰 분석을 시작합니다. <<<<<<<\n")
-        check_return = get_review(url)
-        if check_return==2:
+        return_value = get_review(url)
+        save_to_excel_file(url, return_value)
+        if return_value==2:
             self.info.setText("다른 URL을 입력해주세요")
             self.info.setFont(QtGui.QFont("나눔스퀘어OTF Bold",13)) # 폰트,크기 조절 
             self.info.setAlignment(Qt.AlignCenter) # 가운데 정렬

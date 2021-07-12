@@ -1,5 +1,4 @@
 import time
-import openpyxl
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
@@ -11,12 +10,8 @@ import chromedriver_autoinstaller
 
 ############### 스마트스토어 리뷰 크롤러 ###############################
 
-wb = openpyxl.Workbook() # 워크북 생성
-sheet=wb.active # Sheet 활성
-wb.title ="리뷰 크롤러" # Sheet 이름 설정
-sheet.append(["옵션", "카운트"])  # 데이터 프레임 내 변수명 생성
-
 def get_review(URL: str) :    
+
     review = []
     if "smartstore" in URL: # 입력한 링크에 smartstore이 포함되어있는 경우
         pass
@@ -59,11 +54,10 @@ def get_review(URL: str) :
     length=len(driver.find_elements_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a")) # 리뷰 버튼 전체 개수 구하기
     is_next_page_exist=True
     count=1
-    
 
     while (is_next_page_exist):
         for i in tqdm(range(2, length+1), desc='{} ~ {} 페이지 분석 진행상황'.format(count, count+9)) : # 1페이지 부터 순서대로 수집
-            soup = BeautifulSoup(driver.page_source, "lxml")
+            
             try:
                 driver.find_element_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a[%d]"%i).click()
                 time.sleep(uniform(1.0, 1.5))
@@ -72,22 +66,13 @@ def get_review(URL: str) :
                     pass
                     count -= 1
                 else :
-                    Review_Keywords = driver.find_elements_by_class_name("_3jZQShkMWY") # 리뷰 크롤링                    
-                    [review.append(word.text) for word in Review_Keywords] # 리뷰들을 리스트에 저장
+                    Review_Keywords = driver.find_elements_by_class_name("_3jZQShkMWY") # 리뷰 크롤링
+                    # Review_Keywords = soup.select("#REVIEW > div > div > div > div > ul > li > div > div > div > div > div > div > div > div > div > div > button > span")                 
+                    [review.append(word.text.replace('\n옵션명 더보기','')) for word in Review_Keywords] # 리뷰들을 리스트에 저장
             except (ElementNotInteractableException, NoSuchElementException, AttributeError, Exception) as e: 
                 is_next_page_exist = False # 다음 페이지가 존재하는지 확인
                 break
             
     driver.quit() # 드라이버 종료
 
-    # 리뷰 카운트 및 정렬
-    get_count={}
-    for i in review:
-        try: get_count[i] +=1
-        except: get_count[i]=1
-
-    sort_dict = sorted(get_count.items(), key=lambda x:x[1], reverse=True) # value 값 기준으로 다시 정렬
-    [sheet.append([sort_dict[i][0],sort_dict[i][1]]) for i in tqdm(range(0, len(sort_dict)), desc="모든 리뷰 분석 진행상황")]  # 엑셀에 저장
-
-    wb.save("리뷰 분석.xlsx")  # 엑셀 파일로 저장
-    print("\n>> 모든 작업이 끝났습니다. 엑셀파일로 변환됩니다. <<")
+    return review
