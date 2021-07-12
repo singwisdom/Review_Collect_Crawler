@@ -52,16 +52,18 @@ def get_review(URL: str) :
         driver.find_element_by_xpath("//*[@id='_productTabContainer']/div/div[3]/ul/li[2]").click()  # 리뷰 페이지로 이동
         time.sleep(uniform(1.0, 1.5))
 
-    except NoSuchElementException or AttributeError or Exception as e:
+    except (NoSuchElementException, AttributeError, Exception) as e:
         print("※ 분석할 수 없는 페이지입니다. 다른 URL을 입력해주세요 ※\n")
         return 2
 
     length=len(driver.find_elements_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a")) # 리뷰 버튼 전체 개수 구하기
     is_next_page_exist=True
     count=1
+    
 
     while (is_next_page_exist):
         for i in tqdm(range(2, length+1), desc='{} ~ {} 페이지 분석 진행상황'.format(count, count+9)) : # 1페이지 부터 순서대로 수집
+            soup = BeautifulSoup(driver.page_source, "lxml")
             try:
                 driver.find_element_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a[%d]"%i).click()
                 time.sleep(uniform(1.0, 1.5))
@@ -70,15 +72,15 @@ def get_review(URL: str) :
                     pass
                     count -= 1
                 else :
-                    Review_Keywords = driver.find_elements_by_class_name("_3jZQShkMWY") # 리뷰 크롤링                       
+                    Review_Keywords = driver.find_elements_by_class_name("_3jZQShkMWY") # 리뷰 크롤링                    
                     [review.append(word.text) for word in Review_Keywords] # 리뷰들을 리스트에 저장
-            except ElementNotInteractableException or NoSuchElementException or AttributeError or Exception as e: 
-                is_next_page_exist = False #다음 페이지가 존재하는지 확인
+            except (ElementNotInteractableException, NoSuchElementException, AttributeError, Exception) as e: 
+                is_next_page_exist = False # 다음 페이지가 존재하는지 확인
                 break
             
     driver.quit() # 드라이버 종료
 
-    #리뷰 카운트 및 정렬
+    # 리뷰 카운트 및 정렬
     get_count={}
     for i in review:
         try: get_count[i] +=1
