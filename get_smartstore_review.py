@@ -6,18 +6,23 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 from random import uniform
 from tqdm import tqdm
+import openpyxl
 import chromedriver_autoinstaller
+
 
 ############### 스마트스토어 리뷰 크롤러 ###############################
 
-def get_review(URL: str) :    
+def get_review(URL: str, number:int) :    
 
     review = []
+    is_valid = True # 올바른 링크인지 확인할 변수
+    
     if "smartstore" in URL: # 입력한 링크에 smartstore이 포함되어있는 경우
         pass
     else :
         print("※ 스마트스토어 페이지가 아닙니다. 다른 URL을 입력해주세요 ※\n")
-        return 2
+        is_valid = False
+        return is_valid 
 
     check_chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0] # 크롬 버전 확인
     
@@ -37,7 +42,17 @@ def get_review(URL: str) :
     # 스마트스토어 페이지 이동
     driver.get(URL)
     htmlSource = driver.page_source
-    time.sleep(1.0)
+    time.sleep(1.5)
+
+    # 입력한 URL 제품명 구하기
+    get_title = driver.find_elements_by_css_selector("#content > div > div._2-I30XS1lA > div._2QCa6wHHPy > fieldset > div._1ziwSSdAv8 > div.CxNYUPvHfB > h3")
+    title = get_title[0].text
+
+    wb = openpyxl.Workbook() # 워크북 생성
+    sheet=wb.active # Sheet 활성
+    sheet.append(["입력한 URL : " + URL])  # 데이터 프레임 내 변수명 생성
+    sheet.append(["품목명 : %s" %title])
+    sheet.append(["옵션", "카운트"]) 
 
     # 스크롤 내리기
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") 
@@ -49,7 +64,8 @@ def get_review(URL: str) :
 
     except (NoSuchElementException, AttributeError, Exception) as e:
         print("※ 분석할 수 없는 페이지입니다. 다른 URL을 입력해주세요 ※\n")
-        return 2
+        is_valid = False
+        return is_valid
 
     length=len(driver.find_elements_by_xpath("//*[@id='REVIEW']/div/div[3]/div/div[2]/div/div/a")) # 리뷰 버튼 전체 개수 구하기
     is_next_page_exist=True
@@ -75,4 +91,15 @@ def get_review(URL: str) :
             
     driver.quit() # 드라이버 종료
 
-    return review
+    # 리뷰 카운트 및 정렬
+    get_count={}
+    for i in review:
+        try: get_count[i] += 1
+        except: get_count[i] = 1
+
+    sort_dict = sorted(get_count.items(), key=lambda x:x[1], reverse=True) # value 값 기준으로 다시 정렬
+    [sheet.append([sort_dict[i][0],sort_dict[i][1]]) for i in range(0, len(sort_dict))]  # 엑셀에 저장
+
+    wb.save("리뷰 분석(%d).xlsx" %number)  # 엑셀 파일로 저장
+
+    return is_valid
