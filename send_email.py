@@ -25,7 +25,7 @@ def send_success_mail(receiver, url:any):
 def send_fail_mail(receiver, url:any):
     works_user = 'intern@martroo.com'
     works_pwd = 'akxmfn0617%'
-    TEXT = "리뷰 분석 중 오류가 발생했습니다. 해당 링크부터 다시 실행해주세요\n '%s'" %url # 메일 내용!!
+    TEXT = "리뷰 분석 중 오류가 발생했습니다. 해당 링크는 분석할 수 없는 링크입니다. 다른 링크 입력 후, 다시 실행해주세요\n '%s'" %url # 메일 내용!!
 
     message = MIMEText(TEXT, _charset='euc-kr') # 메일 내용
     message['Subject']='알림) 리뷰 분석 실패' # 메일 제목
